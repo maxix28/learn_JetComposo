@@ -5,11 +5,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -44,7 +42,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,11 +53,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 
 class MainActivity : ComponentActivity() {
@@ -89,6 +86,83 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
+@Composable
+fun WellnessScreen(modifier: Modifier = Modifier) {
+    Column(modifier = modifier.padding(top = 10.dp)) {
+        StatefulCounter()
+        val list = remember { getWellnessTasks().toMutableStateList() }
+
+        WellnessTasksList(list = list, onCloseTask = {task -> list.remove(task)})
+    }
+}
+@Composable
+fun WellnessTasksList(
+    modifier: Modifier = Modifier,
+    list: List<WellnessTask> = rememberSaveable { getWellnessTasks() },
+    onCloseTask : (WellnessTask) -> Unit
+) {
+    LazyColumn(
+        modifier = modifier
+    ) {
+
+        items( items = list,
+            key = { task -> task.id }) { task ->
+            WellnessTaskItem(" ${task.label}", onCloseTask = {onCloseTask(task)} )
+        }
+    }
+}
+private fun getWellnessTasks() = List(300) { i -> WellnessTask(i, "Task # $i") }
+
+@Composable
+fun WellnessTaskItem(
+    taskName: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier, verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp),
+            text = taskName
+        )
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+        IconButton(onClick = onClose) {
+            Icon(Icons.Filled.Close, contentDescription = "Close")
+        }
+    }
+}
+
+
+
+
+@Composable
+
+fun WellnessTaskItem(taskName: String, modifier: Modifier = Modifier, onCloseTask: () -> Unit) {
+    var checkedState: Boolean by rememberSaveable { mutableStateOf(false) }
+
+    WellnessTaskItem(
+        taskName = taskName,
+        checked = checkedState,
+        onCheckedChange = { newValue -> checkedState = newValue },
+        onClose = onCloseTask, // we will implement this later!
+        modifier = modifier,
+    )
+}
+
+
+
+
+
+
 @Composable
 fun MyApp(modifier: Modifier =Modifier){
     var shouldShowOnboarding by rememberSaveable { mutableStateOf(true) }
@@ -97,11 +171,10 @@ fun MyApp(modifier: Modifier =Modifier){
         if (shouldShowOnboarding) {
             OnboardingScreen { shouldShowOnboarding = false }
         } else {
-            WaterCounter(modifier)
+            WellnessScreen(modifier)
         }
     }
 }
-
 
 
 
@@ -182,11 +255,11 @@ fun StatefulCounter(modifier: Modifier = Modifier) {
     var count by rememberSaveable { mutableStateOf(0) }
     var waterCount by remember { mutableStateOf(0) }
 
-    var juiceCount by remember { mutableStateOf(1) }
+
     Column {
 
         StatelessCounter(waterCount, { waterCount++ })
-        StatelessCounter(juiceCount, { juiceCount = juiceCount*2 })
+
     }
 }
 
