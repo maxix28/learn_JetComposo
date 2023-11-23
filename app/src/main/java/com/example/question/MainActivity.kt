@@ -3,13 +3,19 @@ package com.example.question
 import WellnessViewModel
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,6 +31,7 @@ import com.example.question.ui.theme.QuestionTheme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,6 +49,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
@@ -77,7 +86,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextIndent
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
@@ -99,7 +115,7 @@ class MainActivity : ComponentActivity() {
                    // SingleChoiseQuestion(mutableAnswerList)
                     Column {
                         //OnboardingScreen()
-                        MyApp()
+                        MyApp2()
                     }
                 }
             }
@@ -119,6 +135,129 @@ fun MyApp(modifier: Modifier =Modifier){
         }
     }
 }
+
+
+
+
+data class Message2(var content: String?, val timestamp: String?) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.readString(),
+        parcel.readString()
+    ) {
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(content)
+        parcel.writeString(timestamp)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<Message2> {
+        override fun createFromParcel(parcel: Parcel): Message2 {
+            return Message2(parcel)
+        }
+
+        override fun newArray(size: Int): Array<Message2?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
+
+@Composable
+fun MyApp2(){
+    val mes = Message2("""      Сонячний дім
+Привітний і світлий наш сонячний дім,
+Як радісно й весело жити у нім.
+Тут мамина пісня і усмішка тата.
+В любові й добрі тут зростають малята.
+Дзвінка наша пісня до сонечка лине:
+«Мій сонячний дім — це моя Україна!""","Андрій Німенко")
+    Box(modifier = Modifier.fillMaxSize(), Alignment.Center){
+        ClicableMessage(mes)
+
+    }
+
+}
+
+/*
+*
+*
+*
+*
+* Modifier
+    .combinedClickable(
+        onClick = { },
+        onLongClick = { },
+    )
+* */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ClicableMessage(
+    message: Message2
+) {
+    var showDetails by remember {
+        mutableStateOf(false)
+    }
+    var  expanded by remember {
+        mutableStateOf(false)
+    }
+
+    Box(modifier = Modifier.background(Color.Cyan,shape = RoundedCornerShape(20.dp)).padding(10.dp) ,) {
+        Column() {
+
+
+//            ClickableText(
+//                text = AnnotatedString(
+//                    text = message.content!!,
+//                    // make "Hello" italic.
+//                    //            spanStyles = listOf(
+//                    //                AnnotatedString.Range(SpanStyle(fontStyle = FontStyle.Italic), 0, 5)
+//                    //            ),
+//                    //            // create two paragraphs with different alignment and indent settings.
+//                    //            paragraphStyles = listOf(
+//                    //                AnnotatedString.Range(ParagraphStyle(textAlign = TextAlign.Center), 0, 6),
+//                    //                AnnotatedString.Range(ParagraphStyle(textIndent = TextIndent(5.sp)), 6, 11)
+//                    //            )
+//                ),
+//                onClick = {
+//                    //showDetails = !showDetails
+//                }
+//                , modifier = Modifier
+//                    .combinedClickable(
+//                        onClick = {  },
+//                        onLongClick = { showDetails = !showDetails },
+//                    )
+//            )
+
+            Text(text = message.content!! ,modifier = Modifier
+                .animateContentSize(
+                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                )
+                .combinedClickable(
+                    onClick = { expanded = !expanded },
+                    onLongClick = { showDetails = !showDetails },
+                ),
+                maxLines =  if(!expanded) 1 else 10 )
+
+            if (showDetails) {
+                AnimatedVisibility(visible = showDetails) {
+                    Text(message.timestamp!!)
+                }
+            }
+
+
+        }
+    }
+}
+
+
+
+
+
+
 
 
 
@@ -821,7 +960,7 @@ fun MessageCard(msg: Message) {
 @Preview()
 @Composable
 fun PreviewMessageCard() {
-    MyApp()
+    MyApp2()
 
 
 }
